@@ -1,0 +1,103 @@
+-- 서브 쿼리
+
+-->> SELECT 안에 포함된 SELECT 절
+-- 비교연산자 오른쪽에 기술, 괄호로 묶어줘야 함.
+
+SELECT DNAME FROM DEPT WHERE DEPTNO = (
+SELECT DEPTNO FROM EMP WHERE ENAME = '김사랑'); -->>>>>>>> 결과 DEPTNO : 20
+
+
+-- 김사랑과 같은 부서에서 근무하는 사원의 이름과 부서 번호 출력하는 예제
+SELECT ENAME, DEPTNO FROM EMP WHERE DEPTNO = 
+(SELECT DEPTNO FROM EMP WHERE ENAME = '김사랑');
+
+
+-- 김사랑과 동일한 직급을 가진 사원 출력
+SELECT * FROM EMP WHERE JOB = 
+(SELECT JOB FROM EMP WHERE ENAME = '김사랑');
+
+
+SELECT ENAME, SAL FROM EMP WHERE SAL >= 
+(SELECT SAL FROM EMP WHERE ENAME = '김사랑');
+
+-- '용인'에서 근무하는 사원의 이름, 급여를 출력하시오.
+-- 서브쿼리 활용
+SELECT ENAME, SAL FROM EMP WHERE DEPTNO =
+(SELECT DEPTNO FROM DEPT WHERE LOC = '용인');
+
+-- JOIN 활용
+SELECT ENAME, SAL 
+FROM EMP INNER JOIN DEPT 
+ON EMP.DEPTNO = DEPT.DEPTNO 
+WHERE LOC = '용인';
+
+
+SELECT ENAME,SAL 
+FROM EMP 
+WHERE MGR =
+(SELECT EMPNO FROM EMP WHERE ENAME = '장동건');
+
+
+-- 다중 행 서브 쿼리
+
+SELECT ENAME,SAL, DEPTNO
+FROM EMP
+WHERE DEPTNO IN
+(SELECT DISTINCT DEPTNO FROM EMP WHERE SAL >= 400);
+-- 서브쿼리의 내용이 다중 행인 것을 알 수 있다.
+
+
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL > ALL
+(SELECT SAL FROM EMP WHERE DEPTNO = 30);
+-- ALL 은 모든 값이 일치할 때 참이다.
+
+
+
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL > ANY
+(SELECT SAL FROM EMP WHERE DEPTNO = 30);
+-- ANY 는 하나 이상 일치하면 참임.
+
+-- ** 다중 행 서브쿼리는 왠만하면 만들지 않는 편이 좋다.
+
+-- GROUP BY를 같이 활용한 문제
+SELECT *
+FROM EMP
+WHERE SAL + NVL(COMM, 0) IN
+(SELECT MAX(SAL + NVL(COMM, 0)) FROM EMP GROUP BY DEPTNO);
+
+
+SELECT *
+FROM DEPT
+WHERE DEPTNO IN    
+(SELECT DISTINCT DEPTNO FROM EMP WHERE JOB = '과장');
+-->> 과장이라는 직급을 가진 사람의 DEPTNO들 중 하나라도 같을 경우
+-->> 그 부서의 번호 이름 지역 출력
+
+
+--집계함수
+SELECT ENAME, SAL, JOB
+FROM EMP
+WHERE SAL > 
+(SELECT MAX(SAL) FROM EMP WHERE JOB = '과장'); -- 결과 값 1행
+
+-- ALL 연산자 사용
+SELECT ENAME, SAL, JOB
+FROM EMP
+WHERE SAL > ALL
+(SELECT SAL FROM EMP WHERE JOB = '과장'); -- 결과 값 3행 
+
+-- ANY
+SELECT ENAME, SAL, JOB
+FROM EMP
+WHERE SAL > ANY
+(SELECT SAL FROM EMP WHERE JOB = '과장');
+
+--집계
+SELECT ENAME, SAL, JOB
+FROM EMP
+WHERE SAL > 
+(SELECT MIN(SAL) FROM EMP WHERE JOB = '과장');
